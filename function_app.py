@@ -4,6 +4,13 @@ import logging
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient
 from io import StringIO
+from azure.cosmos import CosmosClient
+
+COSMOS_URL = os.getenv("COSMOS_URL")
+COSMOS_KEY = os.getenv("COSMOS_KEY")
+
+client = CosmosClient(COSMOS_URL, credential=COSMOS_KEY)
+cosmos_container = client.get_database_client("traffic-db").get_container_client("vehicles")
 
 app = func.FunctionApp()
 
@@ -41,10 +48,23 @@ def main(myblob: func.InputStream):
         try:
             blob_client = container_client.get_blob_client(blob=filename)
             content = blob_client.download_blob().readall().decode("utf-8")
-            if "=== Vehicle Details ===" in content:
-                details_section = content.split("=== Vehicle Details ===", 1)[-1].strip()
-                lines = [line.strip() for line in details_section.splitlines() if line.strip()]
-                all_vehicle_entries.extend(lines)
+            pattern = re.compile(r"ID: (\d+) \| Type: (\w+) \| Direction: (\w+) \| Speed: ([\d.]+) km/h \| Time: (\d{2}:\d{2})")
+            details_section = content.split("=== Vehicle Details ===", 1)[-1].strip()
+            lines = [line.strip() for line in details_section.splitlines() if line.strip()]
+            for line in lines:
+                all_vehicle_entries.append(line)
+                match = pattern.match(line)
+                if match:
+                    vid, vtype, direction, speed, timestamp = match.groups()
+                    doc = {
+                        "id": vid,
+                        "vehicleId": vid,
+                        "type": vtype,
+                        "direction": direction,
+                        "speed": float(speed),
+                        "time": timestamp
+                    }
+                    cosmos_container.upsert_item(doc)
             logs_data.append((i, content))
         except Exception as e:
             logging.warning(f"Log file not found: {filename}")
