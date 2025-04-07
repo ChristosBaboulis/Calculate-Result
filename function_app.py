@@ -20,11 +20,11 @@ def main(myblob: func.InputStream):
 
     # Check how many .log files exist
     log_blobs = [b.name for b in container_client.list_blobs() if b.name.endswith(".log") and b.name.startswith("segment_")]
-    if len(log_blobs) < 17:
-        logging.info(f"✅ Found only {len(log_blobs)} log files — waiting for all 17.")
+    if len(log_blobs) < 18:
+        logging.info(f"✅ Found only {len(log_blobs)} log files — waiting for all 18.")
         return
 
-    logging.info("✅ All 17 logs found. Starting aggregation.")
+    logging.info("✅ All 18 logs found. Starting aggregation.")
 
     # Matchers
     vehicles_pattern = re.compile(r"Total vehicles: Left = (\d+) \| Right = (\d+)")
