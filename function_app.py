@@ -34,11 +34,17 @@ def main(myblob: func.InputStream):
     NUM_SEGMENTS = 18
     logs_data = []
 
+    all_vehicle_entries = []
+
     for i in range(NUM_SEGMENTS):
         filename = f"segment_{i:03d}.mp4.log"
         try:
             blob_client = container_client.get_blob_client(blob=filename)
             content = blob_client.download_blob().readall().decode("utf-8")
+            if "=== Vehicle Details ===" in content:
+                details_section = content.split("=== Vehicle Details ===", 1)[-1].strip()
+                lines = [line.strip() for line in details_section.splitlines() if line.strip()]
+                all_vehicle_entries.extend(lines)
             logs_data.append((i, content))
         except Exception as e:
             logging.warning(f"Log file not found: {filename}")
@@ -135,6 +141,11 @@ def main(myblob: func.InputStream):
     for i, (vl, vr) in enumerate(total_vehicles_per_5min, 1):
         sl, sr = total_speed_per_5min[i-1]
         summary_output.write(f"Interval {i}: Vehicles ➜ Left = {int(vl)}, Right = {int(vr)} | Avg Speed ➜ Left = {sl:.2f}, Right = {sr:.2f}\n")
+        
+    if all_vehicle_entries:
+            summary_output.write("\n\n=== Vehicle Details ===\n")
+            summary_output.write("\n".join(all_vehicle_entries))
+            summary_output.write("\n")
 
     # Ανεβάζουμε το αρχείο στο container ως total.log
     total_blob_client = container_client.get_blob_client("total.log")
