@@ -88,8 +88,7 @@ def main(myblob: func.InputStream):
         [0.5 * 7, 8, 9],
         [10, 11, 0.5 * 12],
         [0.5 * 12, 13, 14],
-        [15, 16],
-        [17],
+        [15, 16, 17]
     ]
 
     for group in intervals:
