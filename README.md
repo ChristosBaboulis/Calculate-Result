@@ -22,7 +22,8 @@ The function is triggered when a `.log` file is uploaded to the `test-logs/` con
 - Uploads `total.log` to Blob Storage.
 
 ## Tech Stack
-- Azure Functions (Python)
+- Python 3.10+
+- Azure Functions (Blob Trigger)
 - Azure Blob Storage
 - Azure Cosmos DB
-- Regex for log parsing
+- Regular Expressions (for log parsing)
